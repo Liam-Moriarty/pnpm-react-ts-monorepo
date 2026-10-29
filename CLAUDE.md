@@ -256,7 +256,8 @@ in that form:
 
 ## Repo map
 
-- `apps/web`: React SPA built with Vite. The only app with code.
+- `apps/web`: React SPA built with Vite and styled with Tailwind CSS 4. The
+  only app with code.
 - `apps/server`: placeholder, one comment line and no `package.json`, so not a
   workspace package. Don't build a server until something needs one (holding a
   secret, webhooks, HttpOnly-cookie auth); try RLS, Postgres functions and
@@ -287,6 +288,13 @@ pnpm format                                      # whole repo; not inside a feat
   and `.tsx` files, apps link it with `workspace:*`, and each app's Vite build
   compiles it. It has no build step and no `dist/`. New shared packages follow
   the same pattern. A change in `packages/ui` can break `web`, so check both.
+- Tailwind CSS 4 is configured in CSS, with no `tailwind.config.js`.
+  `apps/web/src/style.css` imports it, and design tokens go in an `@theme`
+  block there (see `docs/04-design-brief.md`); no one-off colours, arbitrary
+  values like `bg-[#123456]` included. Tailwind skips `node_modules`, where
+  `@repo/ui` is linked, so that file has `@source '../../../packages/ui'`.
+  An app that uses `@repo/ui` without that line renders its components
+  unstyled.
 - ESLint 10 with flat config. Each package's `eslint.config.js` re-exports
   `@repo/eslint-config/react` (React code: react-hooks rules, browser globals)
   or `@repo/eslint-config` (Node and tooling code; the root `eslint.config.mjs`

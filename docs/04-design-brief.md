@@ -15,8 +15,11 @@ How every screen should look, so the tenth screen is as on-brand as the first.
 
 ## Colours
 
-Defined once as CSS variables and used everywhere. No one-off colour values in
-components.
+Defined once in the `@theme` block of `apps/web/src/style.css`. Tailwind turns
+each token into a CSS variable and a set of utilities: `--color-primary` gives
+`bg-primary`, `text-primary` and `border-primary`. Use those everywhere. No
+one-off colour values in components, Tailwind arbitrary values like
+`bg-[#1d4ed8]` included.
 
 | Token                | Value | Used for                    |
 | -------------------- | ----- | --------------------------- |
@@ -28,9 +31,12 @@ components.
 | `--color-error`      | TODO  | Errors, destructive actions |
 | `--color-success`    | TODO  | Confirmations               |
 
-Dark mode: TODO: yes or no. If yes, add a dark value column.
+Dark mode: TODO: yes or no. If yes, add a dark value column. Tailwind's `dark:`
+variant follows the operating system setting.
 
 ## Typography
+
+Fonts and sizes go in the same `@theme` block (`--font-*`, `--text-*`).
 
 | Use                 | Font | Size and weight |
 | ------------------- | ---- | --------------- |
@@ -41,7 +47,7 @@ Dark mode: TODO: yes or no. If yes, add a dark value column.
 ## Components
 
 How each element looks in every state. Shared components live in
-`packages/ui`.
+`packages/ui` and are styled with Tailwind classes.
 
 | Element                         | Looks like | States to cover                 |
 | ------------------------------- | ---------- | ------------------------------- |
@@ -54,6 +60,10 @@ How each element looks in every state. Shared components live in
 | Messages (error, success, info) | TODO       |                                 |
 
 ## Layout
+
+Tailwind's defaults apply unless this section changes them: breakpoints at
+640, 768, 1024, 1280 and 1536px (`sm` to `2xl`), and spacing in steps of 4px
+(`p-1` is 4px). Changes go in `@theme`.
 
 - **Breakpoints:** TODO: e.g. phone up to 640px, tablet up to 1024px, desktop
   above

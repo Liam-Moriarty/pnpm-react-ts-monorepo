@@ -1,10 +1,10 @@
 # pnpm React TypeScript monorepo template
 
 A starting point for React apps that need a real toolchain from day one: a
-pnpm and Turborepo monorepo with React 19, Vite 8, TypeScript 7 and Vitest 5,
-shared lint and TypeScript configs, git hooks that enforce conventional
-commits, Changesets, and GitHub Actions for CI, pull request previews and
-per-branch deploys.
+pnpm and Turborepo monorepo with React 19, Vite 8, TypeScript 7, Tailwind CSS
+4 and Vitest 5, shared lint and TypeScript configs, git hooks that enforce
+conventional commits, Changesets, and GitHub Actions for CI, pull request
+previews and per-branch deploys.
 
 It also comes with a process: six planning docs to fill in before anyone builds
 anything, and a [`CLAUDE.md`](CLAUDE.md) that keeps AI-assisted work sized to
@@ -72,7 +72,7 @@ pnpm dev       # web app on http://localhost:5173
 ```text
 .
 ├── apps/
-│   ├── web/                 React 19 + Vite 8 single-page app
+│   ├── web/                 React 19 + Vite 8 + Tailwind CSS 4 single-page app
 │   └── server/              placeholder, not a workspace package yet
 ├── packages/
 │   ├── ui/                  @repo/ui: shared React components
@@ -91,6 +91,7 @@ pnpm dev       # web app on http://localhost:5173
 | ------------ | ------------------------------------------------------------------------------------------------ |
 | Monorepo     | pnpm 10 workspaces with a version catalog, Turborepo 2                                           |
 | Frontend     | React 19, Vite 8, `@vitejs/plugin-react` 6                                                       |
+| Styling      | Tailwind CSS 4 with `@tailwindcss/vite`, configured in CSS (no `tailwind.config.js`)             |
 | Language     | TypeScript 7                                                                                     |
 | Testing      | Vitest 5, Testing Library, jsdom                                                                 |
 | Code quality | ESLint 10 (flat config) with typescript-eslint 8 and react-hooks rules, Prettier 3, EditorConfig |
@@ -205,6 +206,20 @@ away.
 To add a component, create it in `packages/ui/components/` with a test next
 to it, and export it from `components/index.ts`. A change there can break
 `web`, which is why `pre-push` and CI check both.
+
+Components are styled with Tailwind classes. Tailwind only generates the
+classes it finds in the files it scans, and it skips `node_modules`, where
+`web` links `@repo/ui`. So [`apps/web/src/style.css`](apps/web/src/style.css)
+points it at the package source:
+
+```css
+@import 'tailwindcss';
+@source '../../../packages/ui';
+```
+
+A new app that uses `@repo/ui` needs the same two lines, or the components
+render unstyled. Colours, fonts and other design tokens go in an `@theme`
+block in that file; see the [design brief](docs/04-design-brief.md).
 
 ## Adding Supabase
 
