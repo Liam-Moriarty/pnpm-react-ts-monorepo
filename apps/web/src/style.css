@@ -3,3 +3,332 @@
 /* Tailwind skips node_modules, where @repo/ui is linked, so point it at the
    package source or its components' classes never make it into the build. */
 @source '../../../packages/ui';
+
+/* Blueprint placeholders for the tokens in docs/04-design-brief.md. Change the
+   values when the design brief is filled in. */
+@theme {
+  --color-background: #173b6c;
+  --color-surface: #0f2d57;
+  --color-text: #e3ecf8;
+  --color-muted: #9db8dc;
+  --color-border: #6f93c4;
+  --color-primary: #ffc861;
+  --color-grid: rgb(227 236 248 / 0.07);
+
+  --font-sans:
+    'Atkinson Hyperlegible Next', ui-sans-serif, system-ui, sans-serif;
+  --font-mono:
+    'Atkinson Hyperlegible Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-display: 'Saira', ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  :root {
+    /* The highlighter hatch that marks a linked or selected room. */
+    --hatch: repeating-linear-gradient(
+      -45deg,
+      color-mix(in oklab, var(--color-primary) 35%, transparent) 0 1.5px,
+      transparent 1.5px 7px
+    );
+  }
+
+  html {
+    scroll-behavior: smooth;
+
+    @media (prefers-reduced-motion: reduce) {
+      scroll-behavior: auto;
+    }
+  }
+
+  body {
+    /* Graph paper: fine lines every 24px, heavier ones every 120px. */
+    background-image:
+      linear-gradient(var(--color-grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--color-grid) 1px, transparent 1px),
+      linear-gradient(var(--color-grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--color-grid) 1px, transparent 1px);
+    background-size:
+      120px 120px,
+      120px 120px,
+      24px 24px,
+      24px 24px;
+  }
+
+  :not(pre) > code {
+    background-color: var(--color-surface);
+    padding: 0.05em 0.3em;
+    font-size: 0.92em;
+  }
+
+  ::selection {
+    background-color: var(--color-primary);
+    color: var(--color-background);
+  }
+}
+
+@layer components {
+  /* Outlines are drawn rather than bordered: ::before carries the top and
+     bottom lines and ::after the left and right ones, so each pair can grow
+     along its own axis. */
+  .drawn {
+    position: relative;
+  }
+
+  .drawn::before,
+  .drawn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    border-color: var(--line, var(--color-text));
+    border-style: var(--line-style, solid);
+  }
+
+  .drawn::before {
+    border-block-width: 1.5px;
+    transform-origin: left;
+  }
+
+  .drawn::after {
+    border-inline-width: 1.5px;
+    transform-origin: top;
+  }
+
+  /* A room on the repo plan. Hover or focus sweeps a highlighter hatch across
+     it, the same amber that marks everything else you can click. */
+  .room {
+    background-image: var(--hatch);
+    background-repeat: no-repeat;
+    background-size: 0% 100%;
+    transition: background-size 300ms ease-out;
+
+    &[data-planned] {
+      --line: var(--color-muted);
+      --line-style: dashed;
+    }
+
+    &:hover,
+    &:focus-visible {
+      --line: var(--color-primary);
+      background-size: 100% 100%;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      transition: none;
+    }
+  }
+
+  /* The plan's walls draw in one room after another once the welcome sheet
+     has gone, then the labels appear. */
+  .plan .room::before {
+    scale: 0 1;
+  }
+
+  .plan .room::after {
+    scale: 1 0;
+  }
+
+  .plan .room::before,
+  .plan .room::after {
+    transition: scale 500ms cubic-bezier(0.3, 0.7, 0.2, 1);
+    transition-delay: calc(var(--i) * 70ms);
+  }
+
+  .plan .room::after {
+    transition-delay: calc(var(--i) * 70ms + 150ms);
+  }
+
+  .plan .room > * {
+    opacity: 0;
+    transition: opacity 300ms calc(var(--i) * 70ms + 350ms);
+  }
+
+  .plan[data-drawn] .room::before,
+  .plan[data-drawn] .room::after {
+    scale: 1;
+  }
+
+  .plan[data-drawn] .room > * {
+    opacity: 1;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .plan .room::before,
+    .plan .room::after {
+      scale: 1;
+      transition: none;
+    }
+
+    .plan .room > * {
+      opacity: 1;
+      transition: none;
+    }
+  }
+
+  /* Each topic sheet's frame is drawn by scrolling: the top and bottom lines
+     as the sheet comes into view, the sides as you read down it. */
+  .sheet {
+    view-timeline: --sheet;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    @supports ((animation-timeline: view()) and (animation-range: entry)) {
+      .sheet[data-scroll-drawn]::before {
+        animation: draw-across linear both;
+        animation-timeline: --sheet;
+        animation-range: entry 0% entry 40vh;
+      }
+
+      .sheet[data-scroll-drawn]::after {
+        animation: draw-down linear both;
+        animation-timeline: --sheet;
+        animation-range: entry 0% entry 100%;
+      }
+    }
+  }
+
+  /* Arriving at a sheet from the plan flags its number, so it's clear where
+     the jump landed. */
+  .sheet:target .sheet-number {
+    animation: flag 1.4s ease-out;
+
+    @media (prefers-reduced-motion: reduce) {
+      animation: none;
+    }
+  }
+
+  .welcome {
+    transition: opacity 450ms ease-out;
+
+    &[data-leaving] {
+      opacity: 0;
+    }
+  }
+
+  .welcome-sheet {
+    transition: translate 450ms cubic-bezier(0.5, 0, 0.75, 0);
+
+    .welcome[data-leaving] & {
+      translate: 0 -8vh;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      transition: none;
+
+      .welcome[data-leaving] & {
+        translate: none;
+      }
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .welcome-sheet::before {
+      animation: draw-across 700ms cubic-bezier(0.3, 0.7, 0.2, 1) both;
+    }
+
+    .welcome-sheet::after {
+      animation: draw-down 600ms 200ms cubic-bezier(0.3, 0.7, 0.2, 1) both;
+    }
+
+    .welcome-title {
+      animation: letter-in 700ms 450ms steps(23, end) both;
+    }
+  }
+
+  .stamp {
+    display: inline-block;
+    rotate: -6deg;
+    border: 2px solid var(--color-primary);
+    padding: 0.1em 0.5em;
+    color: var(--color-primary);
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    white-space: nowrap;
+
+    @media (prefers-reduced-motion: no-preference) {
+      animation: stamp 380ms cubic-bezier(0.2, 1.4, 0.4, 1) both;
+
+      /* The welcome stamp lands once the cover sheet has been drawn. */
+      .welcome & {
+        animation-delay: 1150ms;
+      }
+    }
+  }
+
+  /* A revision cloud: the scalloped outline a reviewer draws round the change
+     nobody may miss. Each edge is a row of half-circle arcs. */
+  .revision-cloud {
+    --r: 9px;
+    --arc:
+      transparent calc(var(--r) - 1.5px),
+      var(--color-text) calc(var(--r) - 1.5px) var(--r),
+      transparent calc(var(--r) + 0.5px);
+    position: relative;
+    padding: calc(var(--r) + 1rem) calc(var(--r) + 1.25rem);
+
+    &::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 50% 100%, var(--arc)) top / calc(2 * var(--r))
+          var(--r) round no-repeat,
+        radial-gradient(circle at 50% 0, var(--arc)) bottom / calc(2 * var(--r))
+          var(--r) round no-repeat,
+        radial-gradient(circle at 100% 50%, var(--arc)) left / var(--r)
+          calc(2 * var(--r)) no-repeat round,
+        radial-gradient(circle at 0 50%, var(--arc)) right / var(--r)
+          calc(2 * var(--r)) no-repeat round;
+    }
+  }
+
+  .checklist > li {
+    display: flex;
+    gap: 0.75rem;
+
+    &::before {
+      content: '';
+      flex: none;
+      margin-top: 0.3em;
+      width: 0.9em;
+      height: 0.9em;
+      border: 1.5px solid var(--color-muted);
+    }
+  }
+}
+
+@keyframes draw-across {
+  from {
+    scale: 0 1;
+  }
+}
+
+@keyframes draw-down {
+  from {
+    scale: 1 0;
+  }
+}
+
+@keyframes letter-in {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+}
+
+@keyframes stamp {
+  from {
+    opacity: 0;
+    scale: 1.8;
+    rotate: -14deg;
+  }
+}
+
+@keyframes flag {
+  from {
+    background-color: var(--color-primary);
+    color: var(--color-background);
+  }
+}

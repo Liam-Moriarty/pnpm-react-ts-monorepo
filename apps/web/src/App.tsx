@@ -1,29 +1,33 @@
-import typescriptLogo from '/typescript.svg';
-import { Header, Counter } from '@repo/ui';
+import { useCallback, useState } from 'react';
+import { PlanSheet } from './landing/PlanSheet';
+import {
+  ClaudeSheet,
+  EnvSheet,
+  RunSheet,
+  SetupSheet,
+  SharedUiSheet,
+  SupabaseSheet,
+  WorkflowSheet,
+} from './landing/TopicSheets';
+import { Welcome } from './landing/Welcome';
 
 export const App = () => {
+  const [welcomed, setWelcomed] = useState(false);
+  const finishWelcome = useCallback(() => setWelcomed(true), []);
+
   return (
-    <div className="mx-auto flex min-h-screen max-w-7xl flex-col items-center justify-center p-8 text-center">
-      <div className="flex">
-        <a href="https://vitejs.dev" target="_blank">
-          <img
-            src="/vite.svg"
-            className="h-24 p-6 hover:drop-shadow-xl hover:drop-shadow-indigo-500/70"
-            alt="Vite logo"
-          />
-        </a>
-        <a href="https://www.typescriptlang.org/" target="_blank">
-          <img
-            src={typescriptLogo}
-            className="h-24 p-6 hover:drop-shadow-xl hover:drop-shadow-yellow-300/70"
-            alt="TypeScript logo"
-          />
-        </a>
-      </div>
-      <Header title="Web" />
-      <div className="p-8">
-        <Counter />
-      </div>
-    </div>
+    <>
+      {!welcomed && <Welcome onDone={finishWelcome} />}
+      <main className="mx-auto max-w-6xl space-y-12 px-4 py-8 sm:space-y-16 sm:px-6 sm:py-14">
+        <PlanSheet drawn={welcomed} />
+        <SetupSheet />
+        <RunSheet />
+        <WorkflowSheet />
+        <SharedUiSheet />
+        <EnvSheet />
+        <SupabaseSheet />
+        <ClaudeSheet />
+      </main>
+    </>
   );
 };

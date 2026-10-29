@@ -41,13 +41,17 @@ pnpm install   # also installs the git hooks
 pnpm dev       # web app on http://localhost:5173
 ```
 
+The page it opens is a quick guide to the repo, drawn as a blueprint: where
+everything lives, setup, scripts, the daily workflow and the rules.
+
 ## Setting up a new project
 
 - [ ] Fill in and approve the six docs in [`docs/`](docs/README.md).
 - [ ] Set the stage line in [`CLAUDE.md`](CLAUDE.md).
 - [ ] Rename the root package in `package.json` (it's still
       `with-vite-react`).
-- [ ] Replace the sample `Header` and `Counter` components and their tests.
+- [ ] Replace the landing page in `apps/web/src/landing` and the sample
+      `Header` and `Counter` components, with their tests.
 - [ ] Put local settings in `apps/web/.env.local` (git-ignored). See
       [Environment variables](#environment-variables).
 - [ ] For pull request previews, add the repository secrets `VERCEL_TOKEN`,
@@ -219,7 +223,9 @@ points it at the package source:
 
 A new app that uses `@repo/ui` needs the same two lines, or the components
 render unstyled. Colours, fonts and other design tokens go in an `@theme`
-block in that file; see the [design brief](docs/04-design-brief.md).
+block in that file; see the [design brief](docs/04-design-brief.md). The
+sample components use those tokens too (`bg-surface`, `border-primary`,
+`font-display`), so an app that uses them defines the same token names.
 
 ## Adding Supabase
 

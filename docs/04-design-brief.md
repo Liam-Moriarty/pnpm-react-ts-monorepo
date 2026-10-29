@@ -21,6 +21,11 @@ each token into a CSS variable and a set of utilities: `--color-primary` gives
 one-off colour values in components, Tailwind arbitrary values like
 `bg-[#1d4ed8]` included.
 
+The template ships blueprint values for these tokens, used by its landing page
+and the sample `@repo/ui` components. They're placeholders: replace them with
+the values below. It also defines `--color-muted` for secondary text and
+`--color-grid` for the landing page's graph paper.
+
 | Token                | Value | Used for                    |
 | -------------------- | ----- | --------------------------- |
 | `--color-primary`    | TODO  | Main buttons, links         |
@@ -36,7 +41,10 @@ variant follows the operating system setting.
 
 ## Typography
 
-Fonts and sizes go in the same `@theme` block (`--font-*`, `--text-*`).
+Fonts and sizes go in the same `@theme` block (`--font-*`, `--text-*`). The
+placeholder fonts are Saira (`--font-display`) and Atkinson Hyperlegible Next
+and Mono (`--font-sans`, `--font-mono`), loaded from Google Fonts in
+`apps/web/index.html`.
 
 | Use                 | Font | Size and weight |
 | ------------------- | ---- | --------------- |

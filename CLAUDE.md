@@ -257,7 +257,9 @@ in that form:
 ## Repo map
 
 - `apps/web`: React SPA built with Vite and styled with Tailwind CSS 4. The
-  only app with code.
+  only app with code. Its landing page (`src/landing`) is a quick guide to
+  this template and repeats the README's setup, scripts and workflow: when you
+  change one, change the other.
 - `apps/server`: placeholder, one comment line and no `package.json`, so not a
   workspace package. Don't build a server until something needs one (holding a
   secret, webhooks, HttpOnly-cookie auth); try RLS, Postgres functions and
@@ -294,7 +296,8 @@ pnpm format                                      # whole repo; not inside a feat
   values like `bg-[#123456]` included. Tailwind skips `node_modules`, where
   `@repo/ui` is linked, so that file has `@source '../../../packages/ui'`.
   An app that uses `@repo/ui` without that line renders its components
-  unstyled.
+  unstyled. `@repo/ui` components use the same tokens (`bg-surface`,
+  `text-primary`), so an app that uses them defines the same token names.
 - ESLint 10 with flat config. Each package's `eslint.config.js` re-exports
   `@repo/eslint-config/react` (React code: react-hooks rules, browser globals)
   or `@repo/eslint-config` (Node and tooling code; the root `eslint.config.mjs`
