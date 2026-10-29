@@ -6,7 +6,6 @@ on:
       - dev
 
 env:
-  NODE_VERSION: '20'
   PNPM_VERSION: '8'
   APP_NAME: 'web' # ← change to your app name in apps/
 
@@ -29,7 +28,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version-file: '.nvmrc'
           cache: 'pnpm'
 
       - name: Install dependencies

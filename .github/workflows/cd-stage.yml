@@ -6,7 +6,6 @@ on:
       - stage
 
 env:
-  NODE_VERSION: '20'
   PNPM_VERSION: '8'
   APP_NAME: 'web'
 
@@ -28,7 +27,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version-file: '.nvmrc'
           cache: 'pnpm'
 
       - name: Install dependencies
@@ -65,7 +64,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version-file: '.nvmrc'
           cache: 'pnpm'
 
       - name: Install dependencies

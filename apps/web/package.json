@@ -12,19 +12,19 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@repo/ui": "file:..\\..\\packages\\ui\\repo-ui-0.0.0.tgz",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "@repo/ui": "file:../../packages/ui/repo-ui-0.0.0.tgz",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
-    "@types/react": "^19.0.1",
-    "@types/react-dom": "^19.0.2",
-    "@vitejs/plugin-react": "^5.1.4",
-    "eslint": "^8.57.0",
-    "typescript": "5.5.4",
-    "vite": "^5.1.4",
-    "vitest": "^3.1.1"
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "eslint": "^8.57.1",
+    "typescript": "7.0.2",
+    "vite": "^8.3.5",
+    "vitest": "^5.0.5"
   }
 }
