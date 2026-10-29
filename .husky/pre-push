@@ -7,10 +7,11 @@ BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
 echo "📦 Branch: $BRANCH"
 
-# Run tests only on packages affected by changes
-pnpm turbo run test --filter=[HEAD^1]
+# Compare against what the remote already has, so every commit being pushed is
+# checked. A new branch has no upstream yet, so it's compared with origin/main.
+BASE=$(git rev-parse --verify --quiet "@{upstream}" || git rev-parse --verify --quiet origin/main || echo "HEAD^1")
 
-# Run type-check on affected packages
-pnpm turbo run typecheck --filter=[HEAD^1]
+# --affected also checks packages that depend on what changed.
+TURBO_SCM_BASE=$BASE pnpm turbo run test typecheck --affected
 
 echo "✅ Pre-push checks passed!"

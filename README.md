@@ -26,11 +26,10 @@ what the project actually needs.
 
 - **Node.js 26**, pinned in [`.nvmrc`](.nvmrc). With nvm: `nvm install` then
   `nvm use`.
-- **pnpm 8.15.6**, pinned in the `packageManager` field of `package.json`.
-  Node 25 and later no longer ship Corepack, so install it with
-  `npm install -g pnpm@8.15.6`.
-
-pnpm 8 prints a `url.parse()` deprecation warning on Node 26. It's harmless.
+- **pnpm 10**, pinned to 10.34.9 in the `packageManager` field of
+  `package.json`. Node 25 and later no longer ship Corepack, so install it with
+  `npm install -g pnpm@10.34.9`. If you already have pnpm 10, it switches to
+  the pinned version by itself.
 
 ## Quick start
 
@@ -48,8 +47,7 @@ pnpm dev       # web app on http://localhost:5173
 - [ ] Set the stage line in [`CLAUDE.md`](CLAUDE.md).
 - [ ] Rename the root package in `package.json` (it's still
       `with-vite-react`).
-- [ ] Replace the sample `Header` and `Counter` components and the
-      `sample.test.ts` files.
+- [ ] Replace the sample `Header` and `Counter` components and their tests.
 - [ ] Put local settings in `apps/web/.env.local` (git-ignored). See
       [Environment variables](#environment-variables).
 - [ ] For pull request previews, add the repository secrets `VERCEL_TOKEN`,
@@ -65,6 +63,8 @@ pnpm dev       # web app on http://localhost:5173
       approve pull requests.
 - [ ] Protect `main` and require the CI check to pass. Create `dev` and
       `stage` branches if you use them.
+- [ ] Turn on secret scanning and push protection in the repository's
+      security settings.
 
 ## What's inside
 
@@ -79,24 +79,24 @@ pnpm dev       # web app on http://localhost:5173
 │   └── typescript-config/   @repo/typescript-config: shared tsconfigs
 ├── docs/                    the six planning docs and a commit cheat sheet
 ├── .changeset/              Changesets config
-├── .github/workflows/       CI, preview, release, and dev/stage/main CD
+├── .github/                 workflows, shared setup action, Dependabot
 ├── .husky/                  git hooks
 ├── CLAUDE.md                rules for AI-assisted work in this repo
 ├── .nvmrc                   Node version, read by every workflow
 └── turbo.json               task pipeline
 ```
 
-| Area         | Tools                                                       |
-| ------------ | ----------------------------------------------------------- |
-| Monorepo     | pnpm 8 workspaces, Turborepo 2                              |
-| Frontend     | React 19, Vite 8, `@vitejs/plugin-react` 6                  |
-| Language     | TypeScript 7                                                |
-| Testing      | Vitest 5                                                    |
-| Code quality | ESLint 8 with typescript-eslint 8, Prettier 3, EditorConfig |
-| Git          | Husky 9, lint-staged, commitlint                            |
-| Releases     | Changesets                                                  |
-| CI/CD        | GitHub Actions, Vercel previews                             |
-| Database     | Supabase (planned; added when the first feature needs it)   |
+| Area         | Tools                                                                                            |
+| ------------ | ------------------------------------------------------------------------------------------------ |
+| Monorepo     | pnpm 10 workspaces with a version catalog, Turborepo 2                                           |
+| Frontend     | React 19, Vite 8, `@vitejs/plugin-react` 6                                                       |
+| Language     | TypeScript 7                                                                                     |
+| Testing      | Vitest 5, Testing Library, jsdom                                                                 |
+| Code quality | ESLint 10 (flat config) with typescript-eslint 8 and react-hooks rules, Prettier 3, EditorConfig |
+| Git          | Husky 9, lint-staged, commitlint                                                                 |
+| Releases     | Changesets                                                                                       |
+| CI/CD        | GitHub Actions, Vercel previews                                                                  |
+| Database     | Supabase (planned; added when the first feature needs it)                                        |
 
 ## Scripts
 
@@ -118,8 +118,11 @@ One package or one test file:
 
 ```sh
 pnpm turbo run test --filter=web
-pnpm --filter web exec vitest run src/sample.test.ts
+pnpm --filter web exec vitest run src/App.test.tsx
 ```
+
+Tests sit next to the code as `*.test.ts` or `*.test.tsx` and run in jsdom
+with [Testing Library](https://testing-library.com/docs/react-testing-library/intro/).
 
 ## Day-to-day workflow
 
@@ -132,6 +135,7 @@ pnpm --filter web exec vitest run src/sample.test.ts
 | Push to `dev`                      | CD — Dev: checks, build, deploy step                                                                             |
 | Push to `stage`                    | CD — Stage: checks, then deploy step                                                                             |
 | Push to `main`                     | CI; CD — Production (checks, then deploy after approval); Release (opens the version PR if there are changesets) |
+| Every week                         | Dependabot: one PR for minor and patch updates, one per major, one for GitHub Actions                            |
 
 ### Commits
 
@@ -154,7 +158,7 @@ type(optional-scope): subject in lowercase
 | --------------- | -------------------------------------------------------------------- |
 | `pre-commit`    | lint-staged: ESLint and Prettier on staged files                     |
 | `commit-msg`    | commitlint checks the message                                        |
-| `pre-push`      | Tests and typecheck for packages changed in the last commit          |
+| `pre-push`      | Tests and typecheck for everything not yet pushed, plus dependents   |
 | `pre-rebase`    | Blocks rebasing while on `main`                                      |
 | `post-merge`    | Reinstalls dependencies if `pnpm-lock.yaml` changed                  |
 | `post-checkout` | Reinstalls dependencies if `pnpm-lock.yaml` changed between branches |
@@ -176,19 +180,30 @@ generated file. When it reaches `main`, the release workflow opens a
 - Turborepo runs tasks in strict env mode. A variable that isn't `VITE_*` must
   be listed in `turbo.json` (`env` or `globalEnv`), or the build won't see it.
 
-## Changing the shared UI package
+## Dependency versions
 
-`web` installs `@repo/ui` from a packed file (`packages/ui/repo-ui-0.0.0.tgz`),
-not a live link, so changes in `packages/ui` don't show up in `web` until you
-repack it:
+Any dependency used by more than one package has a single version, in the
+`catalog` section of [`pnpm-workspace.yaml`](pnpm-workspace.yaml). Packages
+refer to it as `"catalog:"` instead of a version range:
 
-```sh
-pnpm --filter @repo/ui build
-(cd packages/ui && pnpm pack)
-pnpm install
+```json
+"react": "catalog:"
 ```
 
-Commit the new `.tgz` and `pnpm-lock.yaml` together.
+To upgrade React, TypeScript, Vite, Vitest or ESLint everywhere, change the
+version in the catalog and run `pnpm install`. Dependabot updates the catalog
+the same way.
+
+## Changing the shared UI package
+
+`@repo/ui` ships as source. Its `exports` point at `.ts` and `.tsx` files,
+`web` links it with `workspace:*`, and Vite compiles it as part of the app. So
+there's no build step, and edits in `packages/ui` show up in `web` straight
+away.
+
+To add a component, create it in `packages/ui/components/` with a test next
+to it, and export it from `components/index.ts`. A change there can break
+`web`, which is why `pre-push` and CI check both.
 
 ## Adding Supabase
 
@@ -216,11 +231,9 @@ one is missing or unapproved. Keep the stage line current.
 
 ## Known limitations
 
-- Vitest can't import `@repo/ui` unless the test config inlines it
-  (`server.deps.inline: ['@repo/ui']`), because the package uses directory
-  imports that only a bundler resolves.
-- `web`'s `lint` script only covers `.ts` files. `.tsx` files are linted when
-  you commit, but not by `pnpm lint` or CI.
-- ESLint 8 is past end-of-life. Moving to ESLint 9 means switching to the flat
-  config format.
+- pnpm stays on 10 on purpose. pnpm 11 and 12 write a two-part
+  `pnpm-lock.yaml` that GitHub's dependency graph can't read yet
+  ([dependabot-core#15904](https://github.com/dependabot/dependabot-core/issues/15904)),
+  which would stop Dependabot security alerts. pnpm 12 also has a reported
+  install bug on Vercel. Revisit once both are fixed.
 - `apps/server` is an empty placeholder.

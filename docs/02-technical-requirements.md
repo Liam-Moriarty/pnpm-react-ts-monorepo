@@ -12,15 +12,15 @@ this document first.
 The template already makes these choices. Confirm each one, or record why
 you're changing it in the decision log at the end.
 
-| Area              | Choice                         | Notes                                                   |
-| ----------------- | ------------------------------ | ------------------------------------------------------- |
-| Frontend          | React 19, Vite 8, TypeScript 7 | Single-page app in `apps/web`                           |
-| Monorepo          | pnpm 8 workspaces, Turborepo 2 |                                                         |
-| Runtime           | Node.js 26                     | Pinned in `.nvmrc`                                      |
-| Testing           | Vitest 5                       |                                                         |
-| Database and auth | Supabase                       | TODO: confirm, or write "not needed"                    |
-| Hosting           | Vercel                         | PR previews are wired up. TODO: confirm production host |
-| Server code       | None yet                       | TODO: only if something needs a server (webhooks, keys) |
+| Area              | Choice                          | Notes                                                   |
+| ----------------- | ------------------------------- | ------------------------------------------------------- |
+| Frontend          | React 19, Vite 8, TypeScript 7  | Single-page app in `apps/web`                           |
+| Monorepo          | pnpm 10 workspaces, Turborepo 2 |                                                         |
+| Runtime           | Node.js 26                      | Pinned in `.nvmrc`                                      |
+| Testing           | Vitest 5, Testing Library       |                                                         |
+| Database and auth | Supabase                        | TODO: confirm, or write "not needed"                    |
+| Hosting           | Vercel                          | PR previews are wired up. TODO: confirm production host |
+| Server code       | None yet                        | TODO: only if something needs a server (webhooks, keys) |
 
 ## Project stage
 

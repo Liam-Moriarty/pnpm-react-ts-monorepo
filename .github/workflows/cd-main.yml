@@ -5,8 +5,15 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+
+# Deploys to the same environment run one at a time, in order.
+concurrency:
+  group: cd-production
+  cancel-in-progress: false
+
 env:
-  PNPM_VERSION: '8'
   APP_NAME: 'web'
 
 jobs:
@@ -17,21 +24,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v3
-        with:
-          version: ${{ env.PNPM_VERSION }}
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: '.nvmrc'
-          cache: 'pnpm'
-
-      - name: Install dependencies
-        run: pnpm install
+      - name: Setup pnpm, Node and dependencies
+        uses: ./.github/actions/setup
 
       - name: Lint
         run: pnpm turbo run lint --filter=${{ env.APP_NAME }}
@@ -60,21 +56,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v3
-        with:
-          version: ${{ env.PNPM_VERSION }}
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: '.nvmrc'
-          cache: 'pnpm'
-
-      - name: Install dependencies
-        run: pnpm install
+      - name: Setup pnpm, Node and dependencies
+        uses: ./.github/actions/setup
 
       - name: Build
         run: pnpm turbo run build --filter=${{ env.APP_NAME }}
@@ -88,7 +73,7 @@ jobs:
 
       # OPTION A: Vercel
       # - name: Deploy to Vercel (Production)
-      #   uses: amondnet/vercel-action@v25
+      #   uses: amondnet/vercel-action@v42
       #   with:
       #     vercel-token: ${{ secrets.VERCEL_TOKEN }}
       #     vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}

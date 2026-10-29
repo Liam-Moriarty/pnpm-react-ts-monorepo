@@ -5,27 +5,21 @@ on:
     branches:
       - main
 
+permissions:
+  contents: write # to push the version branch
+  pull-requests: write # to open the version PR
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
 jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: pnpm/action-setup@v3
-        with:
-          version: 8
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: '.nvmrc'
-          cache: 'pnpm'
-          registry-url: 'https://registry.npmjs.org'
-
-      - name: Install dependencies
-        run: pnpm install
-
-      - name: Build packages
-        run: pnpm turbo run build
+      - uses: ./.github/actions/setup
 
       - name: Create Version PR
         uses: changesets/action@v1

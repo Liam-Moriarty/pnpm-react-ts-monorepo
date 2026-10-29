@@ -7,42 +7,33 @@ on:
       - dev
       - stage
 
+permissions:
+  contents: read
+  pull-requests: write # to comment the preview URL
+
+concurrency:
+  group: preview-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
 jobs:
   preview:
+    # Pull requests from forks don't get secrets, so they can't deploy.
+    if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: pnpm/action-setup@v3
-        with:
-          version: 8
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: '.nvmrc'
-          cache: 'pnpm'
-
-      - name: Install dependencies
-        run: pnpm install
+      - uses: ./.github/actions/setup
 
       - name: Build
         run: pnpm turbo run build
 
-      - name: Deploy Preview to Vercel
-        uses: amondnet/vercel-action@v25
+      - name: Deploy preview to Vercel and comment the URL
+        uses: amondnet/vercel-action@v42
         with:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
           working-directory: apps/web
-
-      - name: Comment PR with Preview URL
-        uses: actions/github-script@v7
-        with:
-          script: |
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: '🚀 Preview deployed! Click to view your changes.'
-            })
+          github-comment: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}

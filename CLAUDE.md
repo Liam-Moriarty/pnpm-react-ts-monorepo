@@ -64,7 +64,7 @@ In practice:
   it's maintained and the name is exact (typosquatting), and say why.
 - Code moves into `packages/*` when a second app imports it, not before.
 - Debugging (Occam's razor): rule out the boring causes first (missing env
-  var, stale build, the `@repo/ui` tarball below, wrong Supabase project)
+  var, stale turbo cache, wrong Supabase project)
   before theorising.
 - Keep changes scoped to the task. Don't refactor, reformat or tidy unrelated
   code in the same change.
@@ -261,8 +261,8 @@ in that form:
   workspace package. Don't build a server until something needs one (holding a
   secret, webhooks, HttpOnly-cookie auth); try RLS, Postgres functions and
   Edge Functions first.
-- `packages/ui` (`@repo/ui`): shared React components, compiled by `tsc` to
-  `dist/`.
+- `packages/ui` (`@repo/ui`): shared React components, shipped as source (see
+  Gotchas).
 - `packages/eslint-config`, `packages/typescript-config`: shared configs.
   Extend them; don't copy rules into apps.
 - `docs/`: the six planning docs (see Plan before building) and a commit cheat
@@ -283,30 +283,37 @@ pnpm format                                      # whole repo; not inside a feat
 
 ## Gotchas
 
-- `web` gets `@repo/ui` from a packed tarball
-  (`file:../../packages/ui/repo-ui-0.0.0.tgz`), not a workspace link. Edits in
-  `packages/ui` don't reach `web` until the tarball is rebuilt and reinstalled,
-  and repacking changes its integrity hash in `pnpm-lock.yaml`. Ask before
-  switching it to `workspace:*`.
-- `web`'s `lint` script only matches `src/**/*.ts`, so `.tsx` files are linted
-  on commit (lint-staged) but not by `pnpm lint` or CI. Lint them directly:
-  `pnpm --filter web exec eslint src/App.tsx`.
-- ESLint is v8 with legacy `.eslintrc` files and no React or hooks plugin.
-  Don't migrate it as a side effect.
+- `@repo/ui` is a source-only internal package: its `exports` point at `.ts`
+  and `.tsx` files, apps link it with `workspace:*`, and each app's Vite build
+  compiles it. It has no build step and no `dist/`. New shared packages follow
+  the same pattern. A change in `packages/ui` can break `web`, so check both.
+- ESLint 10 with flat config. Each package's `eslint.config.js` re-exports
+  `@repo/eslint-config/react` (React code: react-hooks rules, browser globals)
+  or `@repo/eslint-config` (Node and tooling code; the root `eslint.config.mjs`
+  uses it). ESLint uses the config nearest each file, so lint-staged running
+  from the root still applies each package's own config. Rule changes go in
+  `packages/eslint-config`, not in a package.
 - Turbo's `build` depends on `typecheck` and `test`, so `pnpm build` runs the
   tests.
 - Turbo 2 runs in strict env mode: a variable read during build or test must be
   declared in `turbo.json` (`env`/`globalEnv`) or turbo strips it. `VITE_*`
   passes through automatically.
-- Use the versions in each `package.json`, not assumed ones. The Node version
-  lives in `.nvmrc`, and every workflow reads it from there.
-- TypeScript 7 (the native compiler) runs `tsc` for typecheck and build. It has
+- Use the versions in the repo, not assumed ones. A dependency used by more
+  than one package has its version in the `catalog` in `pnpm-workspace.yaml`,
+  and packages reference it as `catalog:`; change the catalog, not a
+  `package.json`. Move a dependency into the catalog when a second package
+  needs it. Peer dependency ranges (like `@repo/ui`'s `react: ^19`) stay
+  ranges. The Node version lives in `.nvmrc`, and every workflow reads it.
+- pnpm is pinned to 10 on purpose. pnpm 11 and 12 write a two-part lockfile
+  that GitHub's dependency graph can't read yet, which stops Dependabot
+  security alerts. Don't upgrade pnpm unless asked, and say why if you are.
+- TypeScript 7 (the native compiler) runs `tsc` for type-checking. It has
   no JS compiler API, so typescript-eslint can't use it: `@repo/eslint-config`
-  carries its own TypeScript 6 for the ESLint parser and declares `eslint` as
-  a peer so it pairs with ESLint 8. Don't unify the two TypeScript versions.
-- Vitest in `web` runs with `environment: 'node'`. Component tests need jsdom
-  and Testing Library; add them with the first component test. Vitest 5 no
-  longer skips `dist/`, so `@repo/ui`'s test script excludes it.
+  carries its own TypeScript 6 for the ESLint parser. Don't unify the two
+  TypeScript versions.
+- Tests run in jsdom with Testing Library. Each package's `vitest.setup.ts`
+  cleans up the DOM after every test, because Vitest globals are off. Query by
+  role or label (`getByRole`), and drive clicks and typing with `user-event`.
 - Prettier: single quotes, semicolons, 80 columns, ES5 trailing commas. Some
   older files use double quotes; lint-staged reformats any file you touch, so
   don't reformat the others.
@@ -314,9 +321,10 @@ pnpm format                                      # whole repo; not inside a feat
 ## Git, CI and releases
 
 - Hooks: pre-commit runs lint-staged (ESLint `--max-warnings=0`, Prettier);
-  commit-msg runs commitlint; pre-push runs test and typecheck on packages
-  changed since `HEAD^1`; pre-rebase blocks rebasing while on `main`;
-  post-merge and post-checkout reinstall when the lockfile changed.
+  commit-msg runs commitlint; pre-push runs test and typecheck (`--affected`)
+  on everything not yet on the remote, plus the packages that depend on it;
+  pre-rebase blocks rebasing while on `main`; post-merge and post-checkout
+  reinstall when the lockfile changed.
 - Commit types: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`,
   `build`, `ci`, `chore`, `revert`, `wip`. Scope optional and lowercase, header
   up to 100 characters, no trailing period.
@@ -327,6 +335,12 @@ pnpm format                                      # whole repo; not inside a feat
   asked. `preview.yml` is the only workflow that deploys: a Vercel preview for
   PRs into those branches. `release.yml` opens the changesets version PR on
   `main`.
+- Every workflow sets up through `.github/actions/setup` (pnpm from
+  `package.json`, Node from `.nvmrc`, install); change setup there, not per
+  workflow. Each workflow declares minimal `permissions`; widen them only for
+  the step that needs it.
+- Dependabot opens weekly PRs: one grouped PR for minor and patch updates, one
+  per major, and one for GitHub Actions.
 
 ## Definition of done
 

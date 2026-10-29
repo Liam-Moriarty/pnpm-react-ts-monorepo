@@ -14,11 +14,11 @@
   },
   "lint-staged": {
     "*.{ts,tsx}": [
-      "eslint --fix --max-warnings=0",
+      "eslint --fix --max-warnings=0 --no-warn-ignored",
       "prettier --write"
     ],
     "*.{js,jsx}": [
-      "eslint --fix",
+      "eslint --fix --no-warn-ignored",
       "prettier --write"
     ],
     "*.{json,md,yaml,yml}": [
@@ -30,12 +30,13 @@
     "@commitlint/cli": "^20.5.3",
     "@commitlint/config-conventional": "^20.5.3",
     "@repo/eslint-config": "workspace:^",
-    "eslint": "^8.57.1",
+    "@types/node": "catalog:",
+    "eslint": "catalog:",
     "husky": "^9.1.7",
     "lint-staged": "^16.4.0",
     "prettier": "^3.9.10",
     "turbo": "^2.11.10"
   },
-  "packageManager": "pnpm@8.15.6",
+  "packageManager": "pnpm@10.34.9",
   "name": "with-vite-react"
 }
