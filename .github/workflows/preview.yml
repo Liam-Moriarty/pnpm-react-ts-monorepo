@@ -28,7 +28,21 @@ jobs:
       - name: Build
         run: pnpm turbo run build
 
+      # The token is missing until the Vercel secrets are added, and always on
+      # Dependabot PRs, which get Dependabot secrets instead of Actions secrets.
+      - name: Check for a Vercel token
+        id: vercel
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          if [ -n "$VERCEL_TOKEN" ]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::VERCEL_TOKEN is not available to this run, so no preview is deployed."
+          fi
+
       - name: Deploy preview to Vercel and comment the URL
+        if: steps.vercel.outputs.configured == 'true'
         uses: amondnet/vercel-action@v42
         with:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}

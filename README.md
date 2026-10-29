@@ -51,7 +51,8 @@ pnpm dev       # web app on http://localhost:5173
 - [ ] Put local settings in `apps/web/.env.local` (git-ignored). See
       [Environment variables](#environment-variables).
 - [ ] For pull request previews, add the repository secrets `VERCEL_TOKEN`,
-      `VERCEL_ORG_ID` and `VERCEL_PROJECT_ID`.
+      `VERCEL_ORG_ID` and `VERCEL_PROJECT_ID`. Without them the preview job
+      builds and skips the deploy. Dependabot PRs always skip it.
 - [ ] For the CD workflows, create the GitHub environments `development`,
       `staging` and `production`. Add the repository variables `DEV_URL`,
       `STAGE_URL`, `PROD_URL` and the repository secrets `DEV_API_URL`,
