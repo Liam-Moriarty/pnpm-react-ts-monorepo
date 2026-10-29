@@ -24,6 +24,23 @@ much of the rest of this file applies to the change in front of you.
 - If a request implies a later stage (real user data in a Prototype, payments,
   health data, an SLA), say so and ask whether to move the stage first.
 
+## Plan before building
+
+The six planning docs in `docs/` (`01-product-requirements.md` to
+`06-implementation-plan.md`, indexed in `docs/README.md`) record what's being
+built: features, tools, screens and flows, design, data and access, and build
+order.
+
+- Before building a feature in `apps/` or `packages/ui`, read the docs that
+  cover it. If the feature isn't in `01`, or a doc it depends on is not
+  `Approved` or still contains `TODO`, stop and say what's missing. Don't make
+  that decision yourself halfway through the build. If the user says to go
+  ahead anyway, do it and name the gap in your reply.
+- When a decision changes during the build, update the doc in the same change.
+- The access table in `05-database-schema.md` is the source for RLS policies
+  and their tests.
+- Tooling, CI and docs work doesn't depend on the docs being approved.
+
 ## Deciding how to build something
 
 When principles conflict, this order wins:
@@ -248,7 +265,8 @@ in that form:
   `dist/`.
 - `packages/eslint-config`, `packages/typescript-config`: shared configs.
   Extend them; don't copy rules into apps.
-- `docs/`: monorepo layout (`TDD.md`), commit cheat sheet.
+- `docs/`: the six planning docs (see Plan before building) and a commit cheat
+  sheet.
 
 ## Commands
 
