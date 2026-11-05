@@ -27,7 +27,7 @@
   },
   "devDependencies": {
     "@changesets/cli": "^2.31.1",
-    "@commitlint/cli": "^20.5.3",
+    "@commitlint/cli": "^21.2.4",
     "@commitlint/config-conventional": "^20.5.3",
     "@repo/eslint-config": "workspace:^",
     "@types/node": "catalog:",
